@@ -1,0 +1,24 @@
+{
+  "name": "snappix",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AbhimanRajCoder/Snappix.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AbhimanRajCoder/Snappix/issues"
+  },
+  "homepage": "https://github.com/AbhimanRajCoder/Snappix#readme",
+  "devDependencies": {
+    "electron": "^45.0.0"
+  }
+}
