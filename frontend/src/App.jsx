@@ -1,122 +1,174 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState, useEffect, useRef } from 'react';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [activeNav, setActiveNav] = useState('CAMERA');
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [devices, setDevices] = useState([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState('');
+  const [cameraError, setCameraError] = useState(null);
+
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
+  // Enumerate video input devices
+  const getCameraDevices = async () => {
+    try {
+      const allDevices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = allDevices.filter((device) => device.kind === 'videoinput');
+      setDevices(videoInputs);
+      if (videoInputs.length > 0 && !selectedDeviceId) {
+        setSelectedDeviceId(videoInputs[0].deviceId);
+      }
+    } catch (err) {
+      console.error('Error enumerating devices:', err);
+    }
+  };
+
+  // Start live webcam stream
+  const startCamera = async (deviceId = selectedDeviceId) => {
+    try {
+      setCameraError(null);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+
+      const constraints = {
+        video: deviceId
+          ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+          : { width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+
+      setIsStreaming(true);
+      await getCameraDevices();
+    } catch (err) {
+      console.error('Camera access error:', err);
+      setIsStreaming(false);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setCameraError('Camera permission was denied. Please allow access in system settings.');
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        setCameraError('No camera device was detected on your machine.');
+      } else {
+        setCameraError(`Camera error: ${err.message || 'Unable to open camera.'}`);
+      }
+    }
+  };
+
+  // Stop camera stream
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsStreaming(false);
+  };
+
+  // Switch camera device
+  const handleDeviceChange = (e) => {
+    const newDeviceId = e.target.value;
+    setSelectedDeviceId(newDeviceId);
+    if (isStreaming) {
+      startCamera(newDeviceId);
+    }
+  };
+
+  // Initialize camera on mount
+  useEffect(() => {
+    startCamera();
+    return () => {
+      stopCamera();
+    };
+  }, []);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="canvas-sky">
+      {/* Karl Top Centered Nav */}
+      <nav className="top-nav">
+        {['HOME', 'CAMERA', 'FILTERS', 'GALLERY'].map((item) => (
+          <button
+            key={item}
+            type="button"
+            className={`nav-link ${activeNav === item ? 'active' : ''}`}
+            onClick={() => setActiveNav(item)}
+          >
+            {item}
+            {activeNav === item && <span className="nav-indicator" />}
+          </button>
+        ))}
+      </nav>
 
-      <div className="ticks"></div>
+      {/* Decorative Storybook Cloud Elements */}
+      <div className="cloud cloud-top-left" aria-hidden="true" />
+      <div className="cloud cloud-top-right" aria-hidden="true" />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {/* Main Hero & Camera Frame */}
+      <main className="hero-section">
+        <div className="header-titles">
+          <h1 className="display-headline">SNAPPIX</h1>
+          <p className="sub-headline">LIVE STORYBOOK WEBCAM</p>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {/* Focal Globe Surface with Camera Viewfinder */}
+        <div className="globe-surface">
+          <div className="camera-frame">
+            <video
+              ref={videoRef}
+              className={`camera-video ${isStreaming ? 'visible' : 'hidden'}`}
+              autoPlay
+              playsInline
+              muted
+            />
+
+            {!isStreaming && (
+              <div className="camera-placeholder">
+                <span className="placeholder-icon">📷</span>
+                <p className="placeholder-text">
+                  {cameraError ? cameraError : 'Camera is currently sleeping.'}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Camera Action Controls */}
+        <div className="camera-toolbar">
+          <button
+            type="button"
+            className="action-btn primary"
+            onClick={isStreaming ? stopCamera : () => startCamera()}
+          >
+            {isStreaming ? 'PAUSE CAMERA' : 'START CAMERA'}
+          </button>
+
+          {devices.length > 1 && (
+            <select
+              className="device-select"
+              value={selectedDeviceId}
+              onChange={handleDeviceChange}
+            >
+              {devices.map((device, index) => (
+                <option key={device.deviceId || index} value={device.deviceId}>
+                  {device.label || `Camera ${index + 1}`}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;

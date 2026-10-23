@@ -1,184 +1,242 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
-
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-}
-
-.hero {
+/* Full-Bleed Sunny Sky Canvas */
+.canvas-sky {
   position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
-}
-
-#center {
+  min-height: 100vh;
+  width: 100vw;
+  background-color: var(--color-signal-yellow);
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+  align-items: center;
+  overflow: hidden;
 }
 
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
-}
-
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
-}
-
-.ticks {
+/* Karl Top Centered Nav */
+.top-nav {
   position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 16px;
+  gap: 0;
+}
+
+.nav-link {
+  position: relative;
+  font-family: var(--font-arial);
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--color-charcoal-ink);
+  padding: 10px 20px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  letter-spacing: 0.5px;
+  transition: opacity 0.15s ease;
+}
+
+.nav-link:hover {
+  opacity: 0.7;
+}
+
+/* 20px-wide solid #333333 border-bottom on active item */
+.nav-indicator {
+  position: absolute;
+  bottom: 4px;
+  width: 20px;
+  height: 2px;
+  background-color: var(--color-charcoal-ink);
+}
+
+/* Decorative Storybook Cloud Elements */
+.cloud {
+  position: absolute;
+  background-color: var(--color-cloud-white);
+  border-radius: var(--radius-full);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.cloud-top-left {
+  width: 140px;
+  height: 50px;
+  top: 50px;
+  left: 6%;
+}
+
+.cloud-top-left::after {
+  content: '';
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  background-color: var(--color-cloud-white);
+  border-radius: var(--radius-full);
+  top: -30px;
+  left: 30px;
+}
+
+.cloud-top-right {
+  width: 180px;
+  height: 60px;
+  top: 70px;
+  right: 8%;
+}
+
+.cloud-top-right::after {
+  content: '';
+  position: absolute;
+  width: 85px;
+  height: 85px;
+  background-color: var(--color-cloud-white);
+  border-radius: var(--radius-full);
+  top: -35px;
+  left: 45px;
+}
+
+/* Main Hero Section */
+.hero-section {
+  position: relative;
+  z-index: 5;
   width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 20px 40px;
+  flex: 1;
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
+.header-titles {
+  text-align: center;
+  margin-bottom: 24px;
+}
 
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
+.display-headline {
+  font-family: var(--font-changa-one);
+  font-size: 68px;
+  line-height: 0.8;
+  color: var(--color-charcoal-ink);
+  letter-spacing: -1px;
+  margin: 0;
+}
+
+.sub-headline {
+  font-family: var(--font-arial);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--color-charcoal-ink);
+  margin-top: 10px;
+  text-transform: uppercase;
+}
+
+/* Karl Globe Focal Surface */
+.globe-surface {
+  position: relative;
+  width: 520px;
+  height: 520px;
+  max-width: 90vw;
+  max-height: 90vw;
+  background-color: var(--color-globe-azure);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid var(--color-charcoal-ink);
+  overflow: hidden;
+}
+
+/* Camera Frame inside Globe */
+.camera-frame {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* Mirror camera for natural feeling */
+}
+
+.camera-video.hidden {
+  display: none;
+}
+
+.camera-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  text-align: center;
+  color: var(--color-cloud-white);
+  background-color: var(--color-globe-azure);
+  width: 100%;
+  height: 100%;
+}
+
+.placeholder-icon {
+  font-size: 56px;
+  margin-bottom: 12px;
+}
+
+.placeholder-text {
+  font-family: var(--font-arial);
+  font-size: 15px;
+  line-height: 1.4;
+  max-width: 280px;
+  font-weight: bold;
+}
+
+/* Camera Controls Toolbar */
+.camera-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.action-btn {
+  font-family: var(--font-arial);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 12px 28px;
+  text-transform: uppercase;
+  border-radius: 0px;
+  border: 3px solid var(--color-charcoal-ink);
+  transition: transform 0.1s ease, background-color 0.1s ease;
+}
+
+.action-btn.primary {
+  background-color: var(--color-charcoal-ink);
+  color: var(--color-cloud-white);
+}
+
+.action-btn.primary:hover {
+  background-color: #1a1a1a;
+  transform: translateY(-2px);
+}
+
+.action-btn.primary:active {
+  transform: translateY(1px);
+}
+
+.device-select {
+  font-family: var(--font-arial);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border: 3px solid var(--color-charcoal-ink);
+  background-color: var(--color-cloud-white);
+  color: var(--color-charcoal-ink);
+  outline: none;
+  cursor: pointer;
 }
