@@ -327,6 +327,15 @@
   overflow: hidden;
 }
 
+.viewfinder-stage-card.aspect-9\:16 .camera-frame,
+.viewfinder-stage-card.aspect-9-16 .camera-frame {
+  height: 540px;
+  max-width: 304px;
+  margin: 0 auto;
+  border-left: 2px solid #333;
+  border-right: 2px solid #333;
+}
+
 .viewfinder-stage-card.aspect-1\:1 .camera-frame,
 .viewfinder-stage-card.aspect-1-1 .camera-frame {
   height: 520px;
@@ -1933,7 +1942,7 @@
 }
 
 /* ==========================================================================
-   SHOOT MODE TABS (PHOTO / PHOTOBOOTH / MOTION GAME / VIDEO)
+   SHOOT MODE TABS (PHOTO / PHOTOBOOTH / VIDEO)
    ========================================================================== */
 .shoot-mode-tabs {
   display: flex;
@@ -1971,7 +1980,7 @@
   transform: translateY(1px);
 }
 
-/* OVERLAY CANVAS (GAME HUD & SNAPCHAT AR OVERLAYS) */
+/* OVERLAY CANVAS */
 .camera-overlay-canvas {
   position: absolute;
   top: 0;
@@ -2342,90 +2351,72 @@
 }
 
 /* ==========================================================================
-   GAME OVER MODAL
+   3D LUT (SHUTTERSTOCK LUTS) & CAMERA ENGINE STYLES
    ========================================================================== */
-.game-over-card {
-  max-width: 500px !important;
-  text-align: center;
+.camera-lut-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 2;
 }
 
-.game-over-content {
-  padding: 30px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-}
-
-.game-over-badge {
-  background-color: var(--color-roof-coral);
-  color: var(--color-cloud-white);
+.console-swatch-card.is-lut-card {
+  position: relative;
   border: 2px solid var(--color-charcoal-ink);
+  background-color: #fafafa;
+}
+
+.console-swatch-card.is-lut-card:hover {
+  background-color: #fff9e6;
+  border-color: var(--color-signal-yellow);
+}
+
+.console-swatch-card.is-lut-card.active {
+  background-color: var(--color-signal-yellow);
+  border-color: var(--color-charcoal-ink);
+  box-shadow: 3px 3px 0px var(--color-charcoal-ink);
+}
+
+.swatch-lut-tag {
+  font-size: 8px;
+  font-family: var(--font-changa-one);
+  letter-spacing: 0.5px;
+  background-color: var(--color-charcoal-ink);
+  color: var(--color-signal-yellow);
+  padding: 1px 4px;
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.3);
+}
+
+.swatch-emoji-badge {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+}
+
+.trio-swatch-emoji {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.console-title-box {
+  display: flex;
+  align-items: center;
+}
+
+.console-title-main {
   font-family: var(--font-changa-one);
   font-size: 13px;
-  letter-spacing: 1px;
-  padding: 4px 14px;
-  box-shadow: 2px 2px 0px var(--color-charcoal-ink);
-}
-
-.game-over-title {
-  font-family: var(--font-changa-one);
-  font-size: 32px;
-  letter-spacing: 1px;
-  color: var(--color-charcoal-ink);
-  margin: 0;
-}
-
-.game-over-score-box {
-  background-color: var(--color-signal-yellow);
-  border: 3px solid var(--color-charcoal-ink);
-  box-shadow: 5px 5px 0px var(--color-charcoal-ink);
-  padding: 20px 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  margin: 8px 0;
-}
-
-.game-score-label {
-  font-family: var(--font-changa-one);
-  font-size: 14px;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   color: var(--color-charcoal-ink);
 }
-
-.game-score-number {
-  font-family: var(--font-changa-one);
-  font-size: 54px;
-  line-height: 1;
-  color: var(--color-roof-coral);
-  text-shadow: 2px 2px 0px var(--color-charcoal-ink);
-}
-
-.game-score-stars {
-  font-size: 22px;
-}
-
-.game-over-desc {
-  font-family: var(--font-arial);
-  font-size: 14px;
-  color: #444;
-  margin: 0;
-  max-width: 360px;
-  line-height: 1.4;
-}
-
-.game-over-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.large-game-btn {
-  font-size: 16px !important;
-  padding: 12px 28px !important;
-}
-
-
-

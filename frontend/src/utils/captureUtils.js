@@ -70,15 +70,19 @@ export function playCountdownBeep(freq = 600, duration = 0.09) {
   }
 }
 
+import { applyLutToImageData } from './lutUtils';
+
 /**
- * Captures the current video frame onto a canvas with active filters, mirroring, and aspect ratio crop.
+ * Captures the current video frame onto a canvas with active filters, 3D LUT, mirroring, and aspect ratio crop.
  */
 export function captureFrame({
   videoElement,
   filterCss = 'none',
   isMirrored = true,
-  aspectRatio = 'native', // 'native', '1:1', '4:3', '16:9'
-  overlayCanvas = null
+  aspectRatio = 'native', // 'native', '1:1', '4:3', '16:9', '9:16'
+  overlayCanvas = null,
+  activeLut = null,
+  lutIntensity = 100
 }) {
   if (!videoElement || videoElement.videoWidth === 0) {
     throw new Error('Camera stream is not ready for capture.');
@@ -92,7 +96,19 @@ export function captureFrame({
   let offsetX = 0;
   let offsetY = 0;
 
-  if (aspectRatio === '1:1') {
+  if (aspectRatio === '9:16') {
+    const targetRatio = 9 / 16;
+    const currentRatio = vWidth / vHeight;
+    if (currentRatio > targetRatio) {
+      cropWidth = vHeight * targetRatio;
+      cropHeight = vHeight;
+      offsetX = (vWidth - cropWidth) / 2;
+    } else {
+      cropWidth = vWidth;
+      cropHeight = vWidth / targetRatio;
+      offsetY = (vHeight - cropHeight) / 2;
+    }
+  } else if (aspectRatio === '1:1') {
     const minDim = Math.min(vWidth, vHeight);
     cropWidth = minDim;
     cropHeight = minDim;
@@ -161,7 +177,18 @@ export function captureFrame({
 
   ctx.restore();
 
-  // Draw AR graphics / Motion Game overlay if present
+  // Apply 3D LUT color grading if active
+  if (activeLut && activeLut.data && activeLut.size > 0) {
+    try {
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      applyLutToImageData(imgData, activeLut.data, activeLut.size, lutIntensity ?? 100);
+      ctx.putImageData(imgData, 0, 0);
+    } catch (lutErr) {
+      console.warn('Capture LUT grading error:', lutErr);
+    }
+  }
+
+  // Draw overlay if present
   if (overlayCanvas) {
     ctx.drawImage(overlayCanvas, 0, 0, canvas.width, canvas.height);
   }

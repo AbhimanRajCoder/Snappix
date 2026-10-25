@@ -15,20 +15,34 @@ import {
   BOOTH_STICKERS
 } from './utils/boothUtils';
 import {
-  createVoiceShutter,
   MotionGestureDetector
 } from './utils/gestureVoiceUtils';
 import {
-  MotionCatchGame,
-  SNAPCHAT_AR_PRESETS,
-  renderSnapchatOverlay
-} from './utils/gameFilterUtils';
+  loadLut,
+  LutWebGLRenderer
+} from './utils/lutUtils';
 import {
   VideoRecorderManager,
   saveVideoBlob
 } from './utils/videoRecorderUtils';
 
 import './App.css';
+
+const LUT_GRADIENTS = {
+  'lut-magic-hour': 'linear-gradient(135deg, #ff7e5f, #feb47b)',
+  'lut-orange-blue': 'linear-gradient(135deg, #0082c8, #ff8c00)',
+  'lut-blue-hour': 'linear-gradient(135deg, #1f1c2c, #928dab)',
+  'lut-cold-chrome': 'linear-gradient(135deg, #83a4d4, #b6fbff)',
+  'lut-crisp-autumn': 'linear-gradient(135deg, #e65c00, #f9d423)',
+  'lut-dark-somber': 'linear-gradient(135deg, #232526, #414345)',
+  'lut-hard-boost': 'linear-gradient(135deg, #ff007f, #ffe600)',
+  'lut-natural-boost': 'linear-gradient(135deg, #56ab2f, #a8e063)',
+  'lut-lush-green': 'linear-gradient(135deg, #11998e, #38ef7d)',
+  'lut-long-beach': 'linear-gradient(135deg, #fceabb, #f8b500)',
+  'lut-soft-bw': 'linear-gradient(135deg, #3a3d40, #aaaaaa)',
+  'lut-blue-architecture': 'linear-gradient(135deg, #2b5876, #4e4376)',
+  'lut-waves': 'linear-gradient(135deg, #00b4db, #0083b0)'
+};
 
 function App() {
   const [activeNav, setActiveNav] = useState('CAMERA');
@@ -37,7 +51,7 @@ function App() {
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const [cameraError, setCameraError] = useState(null);
 
-  // Shoot Mode: 'PHOTO' | 'BOOTH' | 'GAME' | 'VIDEO'
+  // Shoot Mode: 'PHOTO' | 'BOOTH' | 'VIDEO'
   const [shootMode, setShootMode] = useState('PHOTO');
 
   // Filter state
@@ -52,18 +66,15 @@ function App() {
   const [aspectRatio, setAspectRatio] = useState('native'); // 'native', '1:1', '4:3', '16:9'
   const [isMirrored, setIsMirrored] = useState(true);
 
-  // Hands-Free Trigger States (Voice & Wave)
-  const [isVoiceShutterEnabled, setIsVoiceShutterEnabled] = useState(false);
+  // Hands-Free Trigger State (Wave Motion)
   const [isWaveShutterEnabled, setIsWaveShutterEnabled] = useState(false);
-  const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [handsFreeHint, setHandsFreeHint] = useState(null);
 
-  // Snapchat-style AR Filter Overlays
-  const [activeAROverlay, setActiveAROverlay] = useState('none');
-
   // Unified Effects Drawer State
-  const [activeEffectsTab, setActiveEffectsTab] = useState('FILTERS'); // 'FILTERS' | 'AR'
   const [isEffectsDrawerExpanded, setIsEffectsDrawerExpanded] = useState(true);
+
+  // 3D LUT State (Shutterstock Free LUTs)
+  const [isLutReady, setIsLutReady] = useState(false);
 
   // Photo Booth Strip & Collage State
   const [boothCurrentShotNum, setBoothCurrentShotNum] = useState(null); // 1, 2, 3, 4
@@ -75,11 +86,6 @@ function App() {
   const [activeBoothCollage, setActiveBoothCollage] = useState(null);
   const [isBoothStudioOpen, setIsBoothStudioOpen] = useState(false);
 
-  // Motion Game State
-  const [isGameActive, setIsGameActive] = useState(false);
-  const [gameScore, setGameScore] = useState(0);
-  const [gameCombo, setGameCombo] = useState(1);
-  const [gameOverScore, setGameOverScore] = useState(null);
 
   // Video Recording State
   const [isRecordingVideo, setIsRecordingVideo] = useState(false);
@@ -114,9 +120,55 @@ function App() {
   const streamRef = useRef(null);
   const overlayCanvasRef = useRef(null);
   const countdownTimerRef = useRef(null);
-  const gameInstanceRef = useRef(null);
+  const lutCanvasRef = useRef(null);
+  const lutRendererRef = useRef(null);
+  const loadedLutsCacheRef = useRef(new Map());
   const motionDetectorRef = useRef(null);
   const videoRecorderRef = useRef(new VideoRecorderManager());
+
+  // Initialize WebGL2 LUT renderer
+  useEffect(() => {
+    if (lutCanvasRef.current && !lutRendererRef.current) {
+      lutRendererRef.current = new LutWebGLRenderer(lutCanvasRef.current);
+    }
+  }, []);
+
+  // Preload & upload active 3D LUT
+  useEffect(() => {
+    let isMounted = true;
+    if (!selectedFilter?.lutFile) {
+      setIsLutReady(false);
+      return;
+    }
+
+    const lutFile = selectedFilter.lutFile;
+    if (loadedLutsCacheRef.current.has(lutFile)) {
+      const cached = loadedLutsCacheRef.current.get(lutFile);
+      if (lutRendererRef.current) {
+        lutRendererRef.current.uploadLut(cached.data, cached.size, lutFile);
+      }
+      setIsLutReady(true);
+      return;
+    }
+
+    loadLut(lutFile)
+      .then((parsed) => {
+        if (!isMounted) return;
+        loadedLutsCacheRef.current.set(lutFile, parsed);
+        if (lutRendererRef.current) {
+          lutRendererRef.current.uploadLut(parsed.data, parsed.size, lutFile);
+        }
+        setIsLutReady(true);
+      })
+      .catch((err) => {
+        console.warn('Failed to load LUT:', lutFile, err);
+        if (isMounted) setIsLutReady(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedFilter?.lutFile]);
 
   // Extract unique categories
   const categories = useMemo(() => {
@@ -229,7 +281,7 @@ function App() {
     setFilterIntensity(filter.defaultIntensity ?? 100);
   };
 
-  // Perform the actual snap (includes AR overlays if active)
+  // Perform the actual snap (includes 3D LUT or CSS filter and overlays)
   const executeCapture = useCallback(() => {
     if (!videoRef.current || !isStreaming) return;
 
@@ -241,13 +293,19 @@ function App() {
       setIsFlashing(true);
       setTimeout(() => setIsFlashing(false), 220);
 
-      // 3. Render frame to canvas with active filter, mirroring, and AR overlay
+      // 3. Render frame to canvas with active 3D LUT or CSS filter, mirroring, and crop
+      const activeLutObj = selectedFilter?.lutFile
+        ? loadedLutsCacheRef.current.get(selectedFilter.lutFile)
+        : null;
+
       const dataUrl = captureFrame({
         videoElement: videoRef.current,
-        filterCss: activeCssFilter,
+        filterCss: selectedFilter?.lutFile ? 'none' : activeCssFilter,
         isMirrored,
         aspectRatio,
-        overlayCanvas: overlayCanvasRef.current
+        overlayCanvas: overlayCanvasRef.current,
+        activeLut: activeLutObj,
+        lutIntensity: filterIntensity
       });
 
       const now = new Date();
@@ -268,13 +326,17 @@ function App() {
       console.error('Capture execution failed:', err);
       alert('Failed to capture photo: ' + err.message);
     }
-  }, [isStreaming, activeCssFilter, isMirrored, aspectRatio, selectedFilter.name]);
+  }, [isStreaming, activeCssFilter, isMirrored, aspectRatio, selectedFilter, filterIntensity]);
 
   // 4-Shot Korean Photo Booth Sequence (Life4Cuts Style)
   const runPhotoBoothSequence = useCallback(async () => {
     if (!isStreaming || !videoRef.current) return;
     setBoothCurrentShotNum(1);
     const captured = [];
+
+    const activeLutObj = selectedFilter?.lutFile
+      ? loadedLutsCacheRef.current.get(selectedFilter.lutFile)
+      : null;
 
     for (let shot = 1; shot <= 4; shot++) {
       setBoothCurrentShotNum(shot);
@@ -296,10 +358,12 @@ function App() {
 
       const shotDataUrl = captureFrame({
         videoElement: videoRef.current,
-        filterCss: activeCssFilter,
+        filterCss: selectedFilter?.lutFile ? 'none' : activeCssFilter,
         isMirrored,
         aspectRatio: '4:3',
-        overlayCanvas: overlayCanvasRef.current
+        overlayCanvas: overlayCanvasRef.current,
+        activeLut: activeLutObj,
+        lutIntensity: filterIntensity
       });
 
       captured.push(shotDataUrl);
@@ -340,7 +404,7 @@ function App() {
     } catch (err) {
       console.error('Collage generation error:', err);
     }
-  }, [isStreaming, activeCssFilter, isMirrored, boothLayout, boothThemeId, boothSticker, boothShowDate]);
+  }, [isStreaming, activeCssFilter, isMirrored, boothLayout, boothThemeId, boothSticker, boothShowDate, selectedFilter, filterIntensity]);
 
   // Video Recording Controls
   const handleToggleVideoRecording = async () => {
@@ -357,40 +421,16 @@ function App() {
       setIsRecordingVideo(true);
       setRecordDuration(0);
       videoRecorderRef.current.start({
+        videoElement: videoRef.current,
         stream: streamRef.current,
         overlayCanvas: overlayCanvasRef.current,
+        lutCanvas: (selectedFilter?.lutFile && isLutReady) ? lutCanvasRef.current : null,
+        filterCss: selectedFilter?.lutFile ? 'none' : activeCssFilter,
+        isMirrored,
+        reelRatio: aspectRatio === '9:16',
         onTick: (elapsed) => setRecordDuration(elapsed)
       });
     }
-  };
-
-  // Motion Game Controls
-  const handleStartGame = () => {
-    if (!overlayCanvasRef.current) return;
-    setIsGameActive(true);
-    setGameOverScore(null);
-    setGameScore(0);
-    setGameCombo(1);
-
-    if (!gameInstanceRef.current) {
-      gameInstanceRef.current = new MotionCatchGame({
-        canvas: overlayCanvasRef.current,
-        onScoreUpdate: (score, combo) => {
-          setGameScore(score);
-          setGameCombo(combo);
-        },
-        onGameOver: (finalScore) => {
-          setIsGameActive(false);
-          setGameOverScore(finalScore);
-        }
-      });
-    }
-    gameInstanceRef.current.start();
-  };
-
-  const handleStopGame = () => {
-    setIsGameActive(false);
-    gameInstanceRef.current?.stop();
   };
 
   // Cancel countdown
@@ -417,15 +457,6 @@ function App() {
 
     if (shootMode === 'VIDEO') {
       handleToggleVideoRecording();
-      return;
-    }
-
-    if (shootMode === 'GAME') {
-      if (!isGameActive) {
-        handleStartGame();
-      } else {
-        handleStopGame();
-      }
       return;
     }
 
@@ -459,8 +490,8 @@ function App() {
   }, [
     isStreaming,
     shootMode,
-    isGameActive,
     runPhotoBoothSequence,
+    handleToggleVideoRecording,
     countdownRemaining,
     selectedTimer,
     executeCapture,
@@ -642,20 +673,6 @@ function App() {
     handleSelectFilter(filteredList[prevIndex]);
   }, [filteredList, selectedFilter]);
 
-  // Voice Shutter effect
-  useEffect(() => {
-    if (!isVoiceShutterEnabled || !isStreaming) return;
-    const voice = createVoiceShutter({
-      onTrigger: (word) => {
-        setHandsFreeHint(`🎤 Heard "${word}"! Capturing...`);
-        setTimeout(() => setHandsFreeHint(null), 2500);
-        handleTriggerShutter();
-      },
-      onListeningChange: (listening) => setIsVoiceListening(listening)
-    });
-    voice.start();
-    return () => voice.stop();
-  }, [isVoiceShutterEnabled, isStreaming, handleTriggerShutter]);
 
   // Wave Motion Shutter effect
   useEffect(() => {
@@ -672,39 +689,35 @@ function App() {
     };
   }, [isWaveShutterEnabled, isStreaming, handleTriggerShutter]);
 
-  // Real-time AR overlay & Motion Game Render Loop
+  // Real-time 3D LUT & Wave Detector Render Loop
   useEffect(() => {
     let animId;
-    const renderLoop = (time) => {
-      const canvas = overlayCanvasRef.current;
-      if (canvas) {
-        const ctx = canvas.getContext('2d');
-        const w = canvas.width;
-        const h = canvas.height;
-        ctx.clearRect(0, 0, w, h);
-
-        // Render Motion Game
-        if (shootMode === 'GAME' && isGameActive && gameInstanceRef.current) {
-          gameInstanceRef.current.updatePlayerTracking(videoRef.current);
-          gameInstanceRef.current.render();
-        }
-
-        // Render Snapchat-style AR overlay
-        if (activeAROverlay !== 'none') {
-          renderSnapchatOverlay(ctx, activeAROverlay, w, h, time);
-        }
-
-        // Process wave detector
-        if (isWaveShutterEnabled && motionDetectorRef.current && videoRef.current) {
-          motionDetectorRef.current.processVideoFrame(videoRef.current);
-        }
+    const renderLoop = () => {
+      // 1. Render 3D LUT onto WebGL2 canvas at 60fps if active
+      if (
+        selectedFilter?.lutFile &&
+        isLutReady &&
+        lutRendererRef.current &&
+        videoRef.current &&
+        videoRef.current.readyState >= 2
+      ) {
+        lutRendererRef.current.render(videoRef.current, {
+          intensity: filterIntensity,
+          isMirrored
+        });
       }
+
+      // 2. Process wave gesture detector
+      if (isWaveShutterEnabled && motionDetectorRef.current && videoRef.current) {
+        motionDetectorRef.current.processVideoFrame(videoRef.current);
+      }
+
       animId = requestAnimationFrame(renderLoop);
     };
 
     animId = requestAnimationFrame(renderLoop);
     return () => cancelAnimationFrame(animId);
-  }, [shootMode, isGameActive, activeAROverlay, isWaveShutterEnabled]);
+  }, [selectedFilter?.lutFile, isLutReady, filterIntensity, isMirrored, isWaveShutterEnabled]);
 
   // Live update of Photo Booth Studio preview when customization changes
   useEffect(() => {
@@ -1044,7 +1057,7 @@ function App() {
                 {/* Ratio Selector */}
                 <div className="hud-pill-group">
                   <span className="hud-label">RATIO</span>
-                  {['native', '1:1', '4:3', '16:9'].map((r) => (
+                  {['native', '9:16', '1:1', '4:3', '16:9'].map((r) => (
                     <button
                       key={r}
                       type="button"
@@ -1081,15 +1094,6 @@ function App() {
                   🪞 MIRROR
                 </button>
 
-                {/* Voice Shutter */}
-                <button
-                  type="button"
-                  className={`hud-action-btn ${isVoiceShutterEnabled ? 'active' : ''}`}
-                  onClick={() => setIsVoiceShutterEnabled(!isVoiceShutterEnabled)}
-                  title="Say 'Cheese', 'Snap', or 'Smile' to capture"
-                >
-                  🎤 VOICE {isVoiceShutterEnabled ? (isVoiceListening ? '●' : 'ON') : 'OFF'}
-                </button>
 
                 {/* Wave Shutter */}
                 <button
@@ -1107,13 +1111,25 @@ function App() {
                 <video
                   ref={videoRef}
                   className={`camera-video ${isStreaming ? 'visible' : 'hidden'} ${isMirrored ? 'mirrored' : ''}`}
-                  style={{ filter: activeCssFilter }}
+                  style={{
+                    filter: selectedFilter?.lutFile ? 'none' : activeCssFilter,
+                    opacity: (selectedFilter?.lutFile && isLutReady) ? 0 : 1
+                  }}
                   autoPlay
                   playsInline
                   muted
                 />
 
-                {/* Real-time AR / Motion Game Overlay Canvas */}
+                {/* Real-time WebGL2 3D LUT Canvas (Shutterstock LUTs) */}
+                <canvas
+                  ref={lutCanvasRef}
+                  className="camera-lut-canvas"
+                  style={{
+                    display: (selectedFilter?.lutFile && isLutReady) ? 'block' : 'none'
+                  }}
+                />
+
+                {/* Real-time Overlay Canvas */}
                 <canvas
                   ref={overlayCanvasRef}
                   width={640}
@@ -1182,17 +1198,13 @@ function App() {
                 {[
                   { id: 'PHOTO', label: '📸 PHOTO' },
                   { id: 'BOOTH', label: '🎞️ 4-CUT BOOTH' },
-                  { id: 'GAME', label: '🎮 STAR CATCHER' },
                   { id: 'VIDEO', label: '📹 VIDEO' }
                 ].map((mode) => (
                   <button
                     key={mode.id}
                     type="button"
                     className={`mode-tab-item ${shootMode === mode.id ? 'active' : ''}`}
-                    onClick={() => {
-                      setShootMode(mode.id);
-                      if (mode.id !== 'GAME') handleStopGame();
-                    }}
+                    onClick={() => setShootMode(mode.id)}
                   >
                     {mode.label}
                   </button>
@@ -1208,16 +1220,21 @@ function App() {
                   type="button"
                   className={`trio-filter-btn ${isEffectsDrawerExpanded ? 'open' : ''}`}
                   onClick={() => setIsEffectsDrawerExpanded(!isEffectsDrawerExpanded)}
-                  title="Toggle Effects Drawer"
+                  title="Toggle Filters Drawer"
                 >
                   <div
                     className="trio-filter-swatch"
-                    style={{ filter: activeCssFilter }}
-                  />
+                    style={{
+                      filter: selectedFilter.lutFile ? 'none' : activeCssFilter,
+                      background: selectedFilter.lutFile ? LUT_GRADIENTS[selectedFilter.id] : undefined
+                    }}
+                  >
+                    {selectedFilter.emoji && <span className="trio-swatch-emoji">{selectedFilter.emoji}</span>}
+                  </div>
                   <div className="trio-filter-text">
                     <span className="trio-filter-title">{selectedFilter.name}</span>
                     <span className="trio-filter-subtitle">
-                      {activeAROverlay !== 'none' ? `AR: ${activeAROverlay.toUpperCase()}` : `${filterIntensity}% STRENGTH`}
+                      {selectedFilter.lutFile ? '3D LUT • ' : ''}{filterIntensity}% STRENGTH
                     </span>
                   </div>
                   <span className="trio-chevron">{isEffectsDrawerExpanded ? '▼' : '▲'}</span>
@@ -1234,7 +1251,7 @@ function App() {
                 >
                   <div className="shutter-disc-inner">
                     <span className="shutter-disc-icon">
-                      {shootMode === 'BOOTH' ? '🎞️' : shootMode === 'VIDEO' ? (isRecordingVideo ? '⏹' : '🔴') : shootMode === 'GAME' ? (isGameActive ? '🛑' : '▶') : '📸'}
+                      {shootMode === 'BOOTH' ? '🎞️' : shootMode === 'VIDEO' ? (isRecordingVideo ? '⏹' : '🔴') : '📸'}
                     </span>
                     <span className="shutter-disc-label">
                       {countdownRemaining !== null
@@ -1243,8 +1260,6 @@ function App() {
                         ? (boothCurrentShotNum ? `SHOT ${boothCurrentShotNum}/4` : 'START BOOTH')
                         : shootMode === 'VIDEO'
                         ? (isRecordingVideo ? `STOP [${recordDuration}s]` : 'RECORD')
-                        : shootMode === 'GAME'
-                        ? (isGameActive ? 'STOP GAME' : 'PLAY GAME')
                         : 'SNAP'}
                     </span>
                   </div>
@@ -1281,30 +1296,17 @@ function App() {
               </div>
             </div>
 
-            {/* Streamlined Effects Console Drawer */}
+            {/* Streamlined Aesthetic Filters Drawer */}
             {isEffectsDrawerExpanded && (
               <div className="effects-console-card">
                 {/* Console Navigation Header */}
                 <div className="effects-console-header">
-                  <div className="console-tab-group">
-                    <button
-                      type="button"
-                      className={`console-tab-btn ${activeEffectsTab === 'FILTERS' ? 'active' : ''}`}
-                      onClick={() => setActiveEffectsTab('FILTERS')}
-                    >
-                      ✨ AESTHETIC FILTERS ({filteredList.length})
-                    </button>
-                    <button
-                      type="button"
-                      className={`console-tab-btn ${activeEffectsTab === 'AR' ? 'active' : ''}`}
-                      onClick={() => setActiveEffectsTab('AR')}
-                    >
-                      🎭 SNAPCHAT AR ({SNAPCHAT_AR_PRESETS.length})
-                    </button>
+                  <div className="console-title-box">
+                    <span className="console-title-main">✨ 30+ AESTHETIC FILTERS ({filteredList.length})</span>
                   </div>
 
                   {/* Filter Intensity Slider */}
-                  {activeEffectsTab === 'FILTERS' && selectedFilter.id !== 'natural' && (
+                  {selectedFilter.id !== 'natural' && (
                     <div className="console-intensity-box">
                       <span className="console-intensity-label">STRENGTH: {filterIntensity}%</span>
                       <input
@@ -1319,69 +1321,54 @@ function App() {
                   )}
                 </div>
 
-                {/* Tab 1: Filters */}
-                {activeEffectsTab === 'FILTERS' ? (
-                  <div className="console-filters-body">
-                    {/* Category Filter Pills */}
-                    <div className="console-category-strip">
-                      {categories.map((cat) => (
-                        <button
-                          key={cat}
-                          type="button"
-                          className={`console-cat-pill ${selectedCategory === cat ? 'active' : ''}`}
-                          onClick={() => setSelectedCategory(cat)}
-                        >
-                          {cat}
-                        </button>
-                      ))}
-                    </div>
+                <div className="console-filters-body">
+                  {/* Category Filter Pills */}
+                  <div className="console-category-strip">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        className={`console-cat-pill ${selectedCategory === cat ? 'active' : ''}`}
+                        onClick={() => setSelectedCategory(cat)}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
 
-                    {/* Horizontal Swatch Scroll Tray */}
-                    <div className="console-swatch-carousel">
-                      {filteredList.map((filter) => {
-                        const isSelected = selectedFilter.id === filter.id;
-                        const sampleCss = getCssFilterString(filter, 85);
-                        return (
-                          <button
-                            key={filter.id}
-                            type="button"
-                            className={`console-swatch-card ${isSelected ? 'active' : ''}`}
-                            onClick={() => handleSelectFilter(filter)}
-                            title={filter.description}
-                          >
-                            <div className="swatch-card-circle">
-                              <div
-                                className="swatch-card-color"
-                                style={{ filter: sampleCss }}
-                              />
-                            </div>
-                            <span className="swatch-card-title">{filter.name}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  /* Tab 2: Snapchat AR Overlays */
-                  <div className="console-ar-body">
-                    <div className="console-ar-grid">
-                      {SNAPCHAT_AR_PRESETS.map((preset) => (
+                  {/* Horizontal Swatch Scroll Tray */}
+                  <div className="console-swatch-carousel">
+                    {filteredList.map((filter) => {
+                      const isSelected = selectedFilter.id === filter.id;
+                      const sampleCss = getCssFilterString(filter, 85);
+                      const isLut = !!filter.lutFile;
+                      const lutGradient = LUT_GRADIENTS[filter.id];
+                      return (
                         <button
-                          key={preset.id}
+                          key={filter.id}
                           type="button"
-                          className={`console-ar-card ${activeAROverlay === preset.id ? 'active' : ''}`}
-                          onClick={() => setActiveAROverlay(preset.id)}
+                          className={`console-swatch-card ${isSelected ? 'active' : ''} ${isLut ? 'is-lut-card' : ''}`}
+                          onClick={() => handleSelectFilter(filter)}
+                          title={filter.description}
                         >
-                          <span className="ar-card-emoji">{preset.icon}</span>
-                          <div className="ar-card-texts">
-                            <strong className="ar-card-name">{preset.name}</strong>
-                            <span className="ar-card-desc">{preset.desc}</span>
+                          <div className="swatch-card-circle">
+                            <div
+                              className="swatch-card-color"
+                              style={{
+                                filter: isLut ? 'none' : sampleCss,
+                                background: isLut ? lutGradient : undefined
+                              }}
+                            >
+                              {filter.emoji && <span className="swatch-emoji-badge">{filter.emoji}</span>}
+                            </div>
                           </div>
+                          <span className="swatch-card-title">{filter.name}</span>
+                          {isLut && <span className="swatch-lut-tag">LUT</span>}
                         </button>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
-                )}
+                </div>
               </div>
             )}
           </div>
@@ -1721,7 +1708,7 @@ function App() {
                   <span className="carousel-index-tag">READY</span>
                 </div>
                 <span className="preview-sub">
-                  Length: {recordedVideo.durationSec}s • Format: {recordedVideo.mimeType} • Includes AR filter / motion game overlays & audio
+                  Length: {recordedVideo.durationSec}s • Format: {recordedVideo.mimeType} • Includes 3D LUT color grading & audio
                 </span>
               </div>
               <button
@@ -1771,45 +1758,6 @@ function App() {
                   type="button"
                   className="action-btn ghost"
                   onClick={() => setRecordedVideo(null)}
-                >
-                  CLOSE
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MOTION GAME OVER MODAL */}
-      {gameOverScore !== null && (
-        <div className="preview-modal-backdrop" onClick={() => setGameOverScore(null)}>
-          <div className="preview-modal-card game-over-card" onClick={(e) => e.stopPropagation()}>
-            <div className="game-over-content">
-              <span className="game-over-badge">🕹️ GAME FINISHED</span>
-              <h2 className="game-over-title">STAR CATCHER</h2>
-              <div className="game-over-score-box">
-                <span className="game-score-label">FINAL SCORE</span>
-                <span className="game-score-number">{gameOverScore}</span>
-                <span className="game-score-stars">⭐⭐⭐</span>
-              </div>
-              <p className="game-over-desc">
-                Great job dodging bombs and catching cosmic items with your head movements!
-              </p>
-              <div className="game-over-actions">
-                <button
-                  type="button"
-                  className="action-btn primary large-game-btn"
-                  onClick={() => {
-                    setGameOverScore(null);
-                    handleStartGame();
-                  }}
-                >
-                  ▶ PLAY AGAIN
-                </button>
-                <button
-                  type="button"
-                  className="action-btn ghost"
-                  onClick={() => setGameOverScore(null)}
                 >
                   CLOSE
                 </button>

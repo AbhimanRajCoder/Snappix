@@ -1,6 +1,6 @@
 /**
  * Video Recording Utility for Snappix
- * Records live video stream + AR filters / Motion Game canvas overlay with audio.
+ * Records live video stream with real-time 3D LUT color grading and audio in 9:16 Reel or standard landscape format.
  */
 
 export class VideoRecorderManager {
@@ -9,27 +9,81 @@ export class VideoRecorderManager {
     this.recordedChunks = [];
     this.startTime = 0;
     this.timerInterval = null;
+    this.animFrameId = null;
     this.isRecording = false;
+
+    // Off-screen canvas for compositing video stream + 3D LUT grading
+    this.compositeCanvas = document.createElement('canvas');
+    this.compositeCanvas.width = 720;
+    this.compositeCanvas.height = 1280; // 9:16 vertical reel format
+    this.compositeCtx = this.compositeCanvas.getContext('2d', { alpha: false });
   }
 
   /**
-   * Starts recording the video stream + optional composite canvas
+   * Starts recording the composite (webcam + 3D LUT / filter) or raw stream with audio
    */
-  start({ stream, overlayCanvas, onTick }) {
+  start({ videoElement, stream, overlayCanvas, lutCanvas, onTick, filterCss = 'none', isMirrored = true, reelRatio = true }) {
     if (this.isRecording) return;
 
     this.recordedChunks = [];
     let recordStream = stream;
 
-    // If there is an overlay canvas (game or AR filter), merge canvas with video stream
-    if (overlayCanvas && overlayCanvas.captureStream) {
+    // Composite stream into Reel (720x1280) or landscape canvas with active filters/LUT and audio
+    if (videoElement) {
       try {
-        const canvasStream = overlayCanvas.captureStream(30);
-        // Include audio tracks from webcam stream if available
-        stream.getAudioTracks().forEach((track) => canvasStream.addTrack(track));
+        const targetW = reelRatio ? 720 : (videoElement.videoWidth || 1280);
+        const targetH = reelRatio ? 1280 : (videoElement.videoHeight || 720);
+        this.compositeCanvas.width = targetW;
+        this.compositeCanvas.height = targetH;
+        const cCtx = this.compositeCtx;
+
+        const renderCompositeFrame = () => {
+          if (!this.isRecording) return;
+
+          // 1. Draw source (either real-time graded lutCanvas or filtered videoElement)
+          const source = (lutCanvas && lutCanvas.width > 0) ? lutCanvas : videoElement;
+          const sW = source.videoWidth || source.width || 640;
+          const sH = source.videoHeight || source.height || 480;
+
+          cCtx.save();
+          if (source === videoElement) {
+            if (filterCss && filterCss !== 'none') {
+              cCtx.filter = filterCss;
+            }
+            if (isMirrored) {
+              cCtx.translate(targetW, 0);
+              cCtx.scale(-1, 1);
+            }
+          }
+
+          if (sW > 0 && sH > 0) {
+            const scale = Math.max(targetW / sW, targetH / sH);
+            const drawW = sW * scale;
+            const drawH = sH * scale;
+            const drawX = (targetW - drawW) / 2;
+            const drawY = (targetH - drawH) / 2;
+            cCtx.drawImage(source, drawX, drawY, drawW, drawH);
+          }
+          cCtx.restore();
+
+          // 2. Draw overlay if present
+          if (overlayCanvas && overlayCanvas.width > 0) {
+            cCtx.drawImage(overlayCanvas, 0, 0, targetW, targetH);
+          }
+
+          this.animFrameId = requestAnimationFrame(renderCompositeFrame);
+        };
+
+        this.isRecording = true;
+        renderCompositeFrame();
+
+        const canvasStream = this.compositeCanvas.captureStream(30);
+        if (stream) {
+          stream.getAudioTracks().forEach((track) => canvasStream.addTrack(track));
+        }
         recordStream = canvasStream;
-      } catch (e) {
-        console.warn('Canvas stream capture fallback:', e);
+      } catch (err) {
+        console.warn('Composite stream fallback to direct stream:', err);
         recordStream = stream;
       }
     }
@@ -43,10 +97,14 @@ export class VideoRecorderManager {
     ];
     let selectedMime = mimeTypes.find((type) => MediaRecorder.isTypeSupported(type)) || 'video/webm';
 
-    this.mediaRecorder = new MediaRecorder(recordStream, {
-      mimeType: selectedMime,
-      videoBitsPerSecond: 2500000 // 2.5 Mbps
-    });
+    try {
+      this.mediaRecorder = new MediaRecorder(recordStream, {
+        mimeType: selectedMime,
+        videoBitsPerSecond: 3000000 // 3.0 Mbps for crisp 60fps Reels
+      });
+    } catch (e) {
+      this.mediaRecorder = new MediaRecorder(recordStream);
+    }
 
     this.mediaRecorder.ondataavailable = (e) => {
       if (e.data && e.data.size > 0) {
@@ -54,7 +112,7 @@ export class VideoRecorderManager {
       }
     };
 
-    this.mediaRecorder.start(200); // 200ms time slice
+    this.mediaRecorder.start(250); // 250ms chunks
     this.isRecording = true;
     this.startTime = Date.now();
 
@@ -66,13 +124,21 @@ export class VideoRecorderManager {
   }
 
   /**
-   * Stops recording and returns video blob and data URL
+   * Stops recording and returns video blob, URL, and duration
    */
   stop() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       if (!this.mediaRecorder || !this.isRecording) {
+        this.isRecording = false;
         resolve(null);
         return;
+      }
+
+      this.isRecording = false;
+
+      if (this.animFrameId) {
+        cancelAnimationFrame(this.animFrameId);
+        this.animFrameId = null;
       }
 
       if (this.timerInterval) {
@@ -81,7 +147,6 @@ export class VideoRecorderManager {
       }
 
       this.mediaRecorder.onstop = () => {
-        this.isRecording = false;
         const durationSec = Math.round((Date.now() - this.startTime) / 1000);
         const mimeType = this.mediaRecorder.mimeType || 'video/webm';
         const blob = new Blob(this.recordedChunks, { type: mimeType });
@@ -96,9 +161,12 @@ export class VideoRecorderManager {
       };
 
       try {
-        this.mediaRecorder.stop();
+        if (this.mediaRecorder.state !== 'inactive') {
+          this.mediaRecorder.stop();
+        }
       } catch (err) {
-        reject(err);
+        console.warn('MediaRecorder stop warning:', err);
+        resolve(null);
       }
     });
   }
@@ -109,9 +177,9 @@ export class VideoRecorderManager {
  */
 export async function saveVideoBlob(blob, customName) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  const defaultName = customName || `snappix-video-${timestamp}.webm`;
+  const defaultName = customName || `snappix-video-clip-${timestamp}.webm`;
 
-  // Convert Blob to data URL for Electron IPC if supported
+  // Electron contextBridge
   if (window.snappix?.savePhoto) {
     const reader = new FileReader();
     return new Promise((resolve) => {
@@ -124,7 +192,7 @@ export async function saveVideoBlob(blob, customName) {
     });
   }
 
-  // Web Browser fallback
+  // Web Browser fallback download
   try {
     const link = document.createElement('a');
     link.download = defaultName;

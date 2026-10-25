@@ -17,6 +17,253 @@
     }
   },
   {
+    "id": "lut-magic-hour",
+    "name": "Magic Hour",
+    "category": "Cinematic LUTs",
+    "lutFile": "MagicHour.cube",
+    "defaultIntensity": 100,
+    "emoji": "🌅",
+    "description": "Golden hour sunset glow with rich warm highlights and cinematic depth",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lut-orange-blue",
+    "name": "Orange & Blue",
+    "category": "Cinematic LUTs",
+    "lutFile": "OrangeAndBlue.cube",
+    "defaultIntensity": 100,
+    "emoji": "🎬",
+    "description": "Iconic blockbuster teal and orange color grade for punchy portraits",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lut-blue-hour",
+    "name": "Blue Hour",
+    "category": "Cinematic LUTs",
+    "lutFile": "BlueHour.cube",
+    "defaultIntensity": 100,
+    "emoji": "🌆",
+    "description": "Ethereal twilight atmosphere with moody cool blues and soft tones",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lut-cold-chrome",
+    "name": "Cold Chrome",
+    "category": "Cinematic LUTs",
+    "lutFile": "ColdChrome.cube",
+    "defaultIntensity": 100,
+    "emoji": "❄️",
+    "description": "Sleek metallic cool tones, steel highlights, and futuristic contrast",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lut-crisp-autumn",
+    "name": "Crisp Autumn",
+    "category": "Cinematic LUTs",
+    "lutFile": "CrispAutumn.cube",
+    "defaultIntensity": 100,
+    "emoji": "🍂",
+    "description": "Cozy warm amber, golden foliage tones, and deep earthy contrast",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lut-dark-somber",
+    "name": "Dark & Somber",
+    "category": "Cinematic LUTs",
+    "lutFile": "DarkAndSomber.cube",
+    "defaultIntensity": 100,
+    "emoji": "🌑",
+    "description": "Moody noir drama with deep shadowed tones and subdued saturation",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lut-hard-boost",
+    "name": "Hard Boost",
+    "category": "Cinematic LUTs",
+    "lutFile": "HardBoost.cube",
+    "defaultIntensity": 90,
+    "emoji": "⚡",
+    "description": "High-impact punchy vibrancy with ultra-crisp blacks and dynamic range",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lut-natural-boost",
+    "name": "Natural Boost",
+    "category": "Cinematic LUTs",
+    "lutFile": "NaturalBoost.cube",
+    "defaultIntensity": 100,
+    "emoji": "✨",
+    "description": "Professional broadcast color lift for glowing skin and clean clarity",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lut-lush-green",
+    "name": "Lush Green",
+    "category": "Cinematic LUTs",
+    "lutFile": "LushGreen.cube",
+    "defaultIntensity": 100,
+    "emoji": "🌿",
+    "description": "Vibrant emerald botanical tones inspired by nature documentaries",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lut-long-beach",
+    "name": "Long Beach Morning",
+    "category": "Cinematic LUTs",
+    "lutFile": "LongBeachMorning.cube",
+    "defaultIntensity": 100,
+    "emoji": "🏖️",
+    "description": "Gentle coastal pastel morning light and sun-bleached seaside warmth",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lut-soft-bw",
+    "name": "Soft B&W",
+    "category": "Cinematic LUTs",
+    "lutFile": "SoftBlackAndWhite.cube",
+    "defaultIntensity": 100,
+    "emoji": "🎞️",
+    "description": "Art-house monochrome with silky shadow transitions and creamy whites",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lut-blue-architecture",
+    "name": "Blue Architecture",
+    "category": "Cinematic LUTs",
+    "lutFile": "BlueArchitecture.cube",
+    "defaultIntensity": 100,
+    "emoji": "🏛️",
+    "description": "Architectural editorial look with crisp cyan, steel blues, and modern punch",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lut-waves",
+    "name": "Waves",
+    "category": "Cinematic LUTs",
+    "lutFile": "Waves.cube",
+    "defaultIntensity": 100,
+    "emoji": "🌊",
+    "description": "Marine aquamarine and oceanic turquoise with bright surf highlights",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
     "id": "vintage-film",
     "name": "Vintage Film",
     "category": "Retro & Film",
