@@ -77,7 +77,8 @@ export function captureFrame({
   videoElement,
   filterCss = 'none',
   isMirrored = true,
-  aspectRatio = 'native' // 'native', '1:1', '4:3', '16:9'
+  aspectRatio = 'native', // 'native', '1:1', '4:3', '16:9'
+  overlayCanvas = null
 }) {
   if (!videoElement || videoElement.videoWidth === 0) {
     throw new Error('Camera stream is not ready for capture.');
@@ -160,8 +161,14 @@ export function captureFrame({
 
   ctx.restore();
 
+  // Draw AR graphics / Motion Game overlay if present
+  if (overlayCanvas) {
+    ctx.drawImage(overlayCanvas, 0, 0, canvas.width, canvas.height);
+  }
+
   return canvas.toDataURL('image/png', 0.95);
 }
+
 
 /**
  * Saves photo using Electron IPC if available, or falls back to browser file download.
