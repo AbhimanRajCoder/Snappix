@@ -277,12 +277,14 @@ function App() {
     }
   };
 
-  // Reveal saved file in folder
+  // Reveal saved file in macOS Finder / OS File Explorer
   const handleShowInFolder = () => {
-    if (lastSavedPath && window.snappix?.showInFolder) {
-      window.snappix.showInFolder(lastSavedPath);
+    if (lastSavedPath && (window.snappix?.openInFinder || window.snappix?.showInFolder)) {
+      const openFn = window.snappix.openInFinder || window.snappix.showInFolder;
+      openFn(lastSavedPath);
     }
   };
+
 
   // Delete photo from captures
   const handleDeletePhoto = (id) => {
@@ -898,7 +900,7 @@ function App() {
                   📋 COPY IMAGE
                 </button>
 
-                {lastSavedPath && window.snappix?.showInFolder && (
+                {lastSavedPath && (window.snappix?.openInFinder || window.snappix?.showInFolder) && (
                   <button
                     type="button"
                     className="action-btn tertiary"
@@ -907,6 +909,7 @@ function App() {
                     📁 SHOW IN FOLDER
                   </button>
                 )}
+
 
                 <button
                   type="button"
