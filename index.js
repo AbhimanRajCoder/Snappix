@@ -15,7 +15,7 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadURL('http://localhost:5173/');
+  mainWindow.loadURL('https://snappix-livid.vercel.app/');
 
   // Optional: Open DevTools while developing
   // mainWindow.webContents.openDevTools();

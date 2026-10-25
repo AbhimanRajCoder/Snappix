@@ -1,11 +1,45 @@
 {
   "name": "snappix",
   "version": "1.0.0",
-  "description": "",
+  "description": "Modern desktop camera and aesthetic photo booth application",
+  "author": "Abhiman Raj",
   "main": "index.js",
   "scripts": {
     "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "build": {
+    "appId": "com.snappix.app",
+    "productName": "Snappix",
+    "copyright": "Copyright © 2026 Abhiman Raj",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.js",
+      "preload.js",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.photography",
+      "icon": "frontend/public/ICON.png",
+      "identity": null,
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "icon": "frontend/public/ICON.png",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    }
   },
   "repository": {
     "type": "git",
@@ -19,6 +53,7 @@
   },
   "homepage": "https://github.com/AbhimanRajCoder/Snappix#readme",
   "devDependencies": {
-    "electron": "^45.0.0"
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0"
   }
 }
