@@ -28,11 +28,31 @@ function App() {
   const [isFlashing, setIsFlashing] = useState(false);
   const [aspectRatio, setAspectRatio] = useState('native'); // 'native', '1:1', '4:3', '16:9'
   const [isMirrored, setIsMirrored] = useState(true);
-  const [capturedPhotos, setCapturedPhotos] = useState([]);
+
+  // Gallery state with localStorage persistence
+  const [capturedPhotos, setCapturedPhotos] = useState(() => {
+    try {
+      const saved = localStorage.getItem('snappix_gallery');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [activePreviewPhoto, setActivePreviewPhoto] = useState(null);
   const [exportFormat, setExportFormat] = useState('png'); // 'png' or 'jpg'
   const [feedbackMsg, setFeedbackMsg] = useState(null);
   const [lastSavedPath, setLastSavedPath] = useState(null);
+  const [galleryFilter, setGalleryFilter] = useState('ALL');
+
+  // Sync gallery to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('snappix_gallery', JSON.stringify(capturedPhotos));
+    } catch (err) {
+      console.warn('LocalStorage quota or write error:', err);
+    }
+  }, [capturedPhotos]);
+
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -272,7 +292,58 @@ function App() {
     }
   };
 
-  // Keyboard shortcuts (Space = snap, Esc = close preview / cancel countdown)
+  // Extract unique filter names present in captured photos
+  const galleryFilterCategories = useMemo(() => {
+    const filtersUsed = ['ALL', ...new Set(capturedPhotos.map((p) => p.filterName))];
+    return filtersUsed;
+  }, [capturedPhotos]);
+
+  // Photos filtered for gallery display
+  const displayedGalleryPhotos = useMemo(() => {
+    if (galleryFilter === 'ALL') return capturedPhotos;
+    return capturedPhotos.filter((p) => p.filterName === galleryFilter);
+  }, [capturedPhotos, galleryFilter]);
+
+  // Active photo index in current array
+  const activeIndex = useMemo(() => {
+    return capturedPhotos.findIndex((p) => p.id === activePreviewPhoto?.id);
+  }, [capturedPhotos, activePreviewPhoto]);
+
+  const hasPrev = activeIndex > 0;
+  const hasNext = activeIndex >= 0 && activeIndex < capturedPhotos.length - 1;
+
+  // Carousel handlers
+  const handlePrevPhoto = useCallback(() => {
+    if (hasPrev) {
+      setActivePreviewPhoto(capturedPhotos[activeIndex - 1]);
+      setFeedbackMsg(null);
+      setLastSavedPath(null);
+    }
+  }, [hasPrev, activeIndex, capturedPhotos]);
+
+  const handleNextPhoto = useCallback(() => {
+    if (hasNext) {
+      setActivePreviewPhoto(capturedPhotos[activeIndex + 1]);
+      setFeedbackMsg(null);
+      setLastSavedPath(null);
+    }
+  }, [hasNext, activeIndex, capturedPhotos]);
+
+  // Batch Export All photos in current view
+  const handleExportAll = async () => {
+    if (displayedGalleryPhotos.length === 0) return;
+    setFeedbackMsg(`Exporting ${displayedGalleryPhotos.length} photos...`);
+    for (let i = 0; i < displayedGalleryPhotos.length; i++) {
+      const photo = displayedGalleryPhotos[i];
+      const cleanName = photo.filterName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const filename = `snappix-batch-${i + 1}-${cleanName}.${exportFormat}`;
+      await savePhotoFile(photo.dataUrl, exportFormat, filename);
+    }
+    setFeedbackMsg(`✓ Exported ${displayedGalleryPhotos.length} photos!`);
+    setTimeout(() => setFeedbackMsg(null), 3500);
+  };
+
+  // Keyboard shortcuts (Space = snap, Esc = close preview / cancel countdown, Arrows = carousel)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
@@ -289,12 +360,17 @@ function App() {
         if (countdownRemaining !== null) {
           cancelCountdown();
         }
+      } else if (e.key === 'ArrowLeft' && activePreviewPhoto) {
+        handlePrevPhoto();
+      } else if (e.key === 'ArrowRight' && activePreviewPhoto) {
+        handleNextPhoto();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activePreviewPhoto, isStreaming, countdownRemaining, handleTriggerShutter, cancelCountdown]);
+  }, [activePreviewPhoto, isStreaming, countdownRemaining, handleTriggerShutter, cancelCountdown, handlePrevPhoto, handleNextPhoto]);
+
 
   // Initialize camera on mount
   useEffect(() => {
@@ -339,53 +415,113 @@ function App() {
         {activeNav === 'GALLERY' ? (
           <div className="gallery-full-view">
             <div className="gallery-header-bar">
-              <h2 className="gallery-title">YOUR CAPTURES ({capturedPhotos.length})</h2>
-              {capturedPhotos.length > 0 && (
+              <div>
+                <h2 className="gallery-title">YOUR CAPTURES ({capturedPhotos.length})</h2>
+                <p className="gallery-subtitle">Review, inspect, re-export, or download past snaps</p>
+              </div>
+
+              <div className="gallery-header-actions">
+                {capturedPhotos.length > 0 && (
+                  <>
+                    <button
+                      type="button"
+                      className="action-btn primary small"
+                      onClick={handleExportAll}
+                      title="Save all photos to disk"
+                    >
+                      💾 EXPORT ALL ({displayedGalleryPhotos.length})
+                    </button>
+                    <button
+                      type="button"
+                      className="action-btn secondary small"
+                      onClick={() => {
+                        if (window.confirm('Are you sure you want to clear your entire gallery?')) {
+                          setCapturedPhotos([]);
+                        }
+                      }}
+                    >
+                      CLEAR ALL
+                    </button>
+                  </>
+                )}
                 <button
                   type="button"
                   className="action-btn secondary small"
-                  onClick={() => setCapturedPhotos([])}
+                  onClick={() => setActiveNav('CAMERA')}
                 >
-                  CLEAR GALLERY
+                  ← BACK TO CAMERA
                 </button>
-              )}
+              </div>
             </div>
+
+            {/* Filter by applied filter preset */}
+            {galleryFilterCategories.length > 2 && (
+              <div className="gallery-filter-bar">
+                <span className="gallery-filter-label">FILTER BY STYLE:</span>
+                <div className="category-tabs inline">
+                  {galleryFilterCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      className={`category-pill ${galleryFilter === cat ? 'active' : ''}`}
+                      onClick={() => setGalleryFilter(cat)}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {capturedPhotos.length === 0 ? (
               <div className="gallery-empty-state">
                 <span className="empty-state-icon">📸</span>
-                <p className="empty-state-text">NO PHOTOS CAPTURED YET!</p>
+                <p className="empty-state-text">NO PHOTOS IN YOUR GALLERY YET!</p>
+                <p className="empty-state-desc">Head over to the camera to apply aesthetic filters and capture snaps.</p>
                 <button
                   type="button"
                   className="action-btn primary"
                   onClick={() => setActiveNav('CAMERA')}
                 >
-                  OPEN CAMERA & SNAP
+                  START CAMERA & SNAP
+                </button>
+              </div>
+            ) : displayedGalleryPhotos.length === 0 ? (
+              <div className="gallery-empty-state">
+                <p className="empty-state-text">No photos found for "{galleryFilter}"</p>
+                <button
+                  type="button"
+                  className="action-btn secondary small"
+                  onClick={() => setGalleryFilter('ALL')}
+                >
+                  SHOW ALL STYLES
                 </button>
               </div>
             ) : (
               <div className="gallery-grid">
-                {capturedPhotos.map((photo) => (
-                  <div key={photo.id} className="gallery-card">
+                {displayedGalleryPhotos.map((photo, idx) => (
+                  <div key={photo.id || idx} className="gallery-card">
                     <div
                       className="gallery-card-thumb-wrap"
                       onClick={() => setActivePreviewPhoto(photo)}
                     >
                       <img src={photo.dataUrl} alt={`Snap ${photo.timestamp}`} className="gallery-card-img" />
                       <div className="gallery-thumb-overlay">
-                        <span>INSPECT</span>
+                        <span>🔍 INSPECT</span>
                       </div>
+                      <span className="gallery-ratio-badge">{photo.aspectRatio || 'FULL'}</span>
                     </div>
+
                     <div className="gallery-card-footer">
                       <div className="gallery-card-meta">
                         <strong className="photo-filter-tag">{photo.filterName}</strong>
-                        <span className="photo-time-tag">{photo.timestamp}</span>
+                        <span className="photo-time-tag">{photo.date} • {photo.timestamp}</span>
                       </div>
                       <div className="gallery-card-actions">
                         <button
                           type="button"
                           className="card-mini-btn"
-                          title="Save photo"
+                          title="Save photo locally"
                           onClick={() => handleSavePhoto(photo)}
                         >
                           💾
@@ -658,32 +794,65 @@ function App() {
         )}
       </main>
 
-      {/* CAPTURED PHOTO PREVIEW MODAL */}
+      {/* CAPTURED PHOTO PREVIEW MODAL & INSPECTOR */}
       {activePreviewPhoto && (
         <div className="preview-modal-backdrop" onClick={() => setActivePreviewPhoto(null)}>
           <div className="preview-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="preview-modal-header">
               <div className="preview-meta">
-                <h3 className="preview-headline">PHOTO CAPTURED!</h3>
+                <div className="preview-title-row">
+                  <h3 className="preview-headline">PHOTO INSPECTOR</h3>
+                  {capturedPhotos.length > 1 && (
+                    <span className="carousel-index-tag">
+                      {activeIndex >= 0 ? `${activeIndex + 1} / ${capturedPhotos.length}` : ''}
+                    </span>
+                  )}
+                </div>
                 <span className="preview-sub">
-                  {activePreviewPhoto.filterName} • {activePreviewPhoto.timestamp}
+                  {activePreviewPhoto.filterName} • {activePreviewPhoto.date || ''} {activePreviewPhoto.timestamp} • RATIO: {activePreviewPhoto.aspectRatio || 'FULL'}
                 </span>
               </div>
               <button
                 type="button"
                 className="modal-close-btn"
                 onClick={() => setActivePreviewPhoto(null)}
+                title="Close (Esc)"
               >
                 ✕
               </button>
             </div>
 
-            <div className="preview-image-container">
-              <img
-                src={activePreviewPhoto.dataUrl}
-                alt="Captured Snapshot"
-                className="preview-image"
-              />
+            {/* Main Stage with Carousel Nav */}
+            <div className="preview-stage-wrap">
+              {hasPrev && (
+                <button
+                  type="button"
+                  className="stage-nav-btn prev"
+                  onClick={handlePrevPhoto}
+                  title="Previous Photo (Left Arrow)"
+                >
+                  ◀
+                </button>
+              )}
+
+              <div className="preview-image-container">
+                <img
+                  src={activePreviewPhoto.dataUrl}
+                  alt="Captured Snapshot"
+                  className="preview-image"
+                />
+              </div>
+
+              {hasNext && (
+                <button
+                  type="button"
+                  className="stage-nav-btn next"
+                  onClick={handleNextPhoto}
+                  title="Next Photo (Right Arrow)"
+                >
+                  ▶
+                </button>
+              )}
             </div>
 
             {/* Feedback notification toast inside modal */}
@@ -696,9 +865,9 @@ function App() {
             {/* Action Bar */}
             <div className="preview-actions-bar">
               <div className="format-selector-box">
-                <label className="format-label">FORMAT:</label>
+                <span className="format-label">RE-EXPORT FORMAT:</span>
                 <div className="toggle-pill-group">
-                  {['png', 'jpg'].map((fmt) => (
+                  {['png', 'jpg', 'webp'].map((fmt) => (
                     <button
                       key={fmt}
                       type="button"
@@ -709,6 +878,7 @@ function App() {
                     </button>
                   ))}
                 </div>
+                <span className="carousel-nav-hint">⌨ Press ◀ / ▶ arrows to flip</span>
               </div>
 
               <div className="preview-action-buttons">
@@ -740,10 +910,23 @@ function App() {
 
                 <button
                   type="button"
+                  className="action-btn danger-outline"
+                  onClick={() => {
+                    const toDeleteId = activePreviewPhoto.id;
+                    const next = hasNext ? capturedPhotos[activeIndex + 1] : hasPrev ? capturedPhotos[activeIndex - 1] : null;
+                    handleDeletePhoto(toDeleteId);
+                    setActivePreviewPhoto(next);
+                  }}
+                >
+                  ✕ DELETE
+                </button>
+
+                <button
+                  type="button"
                   className="action-btn ghost"
                   onClick={() => setActivePreviewPhoto(null)}
                 >
-                  RETAKE
+                  CLOSE
                 </button>
               </div>
             </div>
@@ -755,4 +938,5 @@ function App() {
 }
 
 export default App;
+
 
