@@ -191,6 +191,18 @@ export async function savePhotoFile(dataUrl, format = 'png', customName) {
 }
 
 /**
+ * Quick-saves photo directly to default ~/Pictures/Snappix/ folder without a dialog
+ */
+export async function quickSavePhotoFile(dataUrl, format = 'png', customName) {
+  if (window.snappix?.quickSave || window.snappix?.quickSavePhoto) {
+    const quickFn = window.snappix.quickSave || window.snappix.quickSavePhoto;
+    return await quickFn(dataUrl, format, customName);
+  }
+  return await savePhotoFile(dataUrl, format, customName);
+}
+
+
+/**
  * Copies captured image data to system clipboard
  */
 export async function copyImageToClipboard(dataUrl) {

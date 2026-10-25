@@ -49,6 +49,10 @@ contextBridge.exposeInMainWorld('snappix', {
   quickSave: (dataUrl, format = 'png', customName) =>
     ipcRenderer.invoke('quick-save-photo', { dataUrl, format, customName }),
 
+  quickSavePhoto: (dataUrl, format = 'png', customName) =>
+    ipcRenderer.invoke('quick-save-photo', { dataUrl, format, customName }),
+
+
   /**
    * Reveal file in macOS Finder / Windows File Explorer
    */

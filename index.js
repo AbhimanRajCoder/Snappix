@@ -30,7 +30,7 @@ function getSnappixDir() {
   return dir;
 }
 
-// Handle native photo saving with Save Dialog
+// Handle native photo saving with Save Dialog (custom path & format selection)
 ipcMain.handle('save-photo', async (event, args = {}) => {
   try {
     const { dataUrl, format = 'png', defaultName } = args;
@@ -44,44 +44,70 @@ ipcMain.handle('save-photo', async (event, args = {}) => {
     const fallbackName = `snappix-${Date.now()}.${ext}`;
     const targetName = defaultName || fallbackName;
 
+    // Ordered format filters (.png, .jpg, .webp)
+    const formatFilters = [
+      { name: 'PNG Image (*.png)', extensions: ['png'] },
+      { name: 'JPEG Image (*.jpg;*.jpeg)', extensions: ['jpg', 'jpeg'] },
+      { name: 'WebP Image (*.webp)', extensions: ['webp'] },
+      { name: 'All Files (*.*)', extensions: ['*'] }
+    ];
+
+    // Ensure the requested format appears first as the active filter
+    const primaryIdx = formatFilters.findIndex((f) => f.extensions.includes(ext));
+    if (primaryIdx > 0) {
+      const [primary] = formatFilters.splice(primaryIdx, 1);
+      formatFilters.unshift(primary);
+    }
+
     const { filePath, canceled } = await dialog.showSaveDialog({
       title: 'Save Snappix Photo',
       defaultPath: path.join(getSnappixDir(), targetName),
-      filters: [
-        { name: `${ext.toUpperCase()} Image (*.${ext})`, extensions: [ext] },
-        { name: 'All Files (*.*)', extensions: ['*'] }
-      ]
+      filters: formatFilters
     });
 
     if (canceled || !filePath) {
       return { success: false, canceled: true };
     }
 
-    await fs.promises.writeFile(filePath, buffer);
-    return { success: true, filePath };
+    // Ensure file extension matches selected format if omitted
+    let finalPath = filePath;
+    if (!path.extname(finalPath)) {
+      finalPath = `${finalPath}.${ext}`;
+    }
+
+    await fs.promises.writeFile(finalPath, buffer);
+    return { success: true, filePath: finalPath };
   } catch (err) {
     console.error('Failed to save photo:', err);
     return { success: false, error: err.message };
   }
 });
 
-// Quick-save without dialog directly to ~/Pictures/Snappix
-ipcMain.handle('quick-save-photo', async (event, { dataUrl, format = 'png', customName } = {}) => {
+// Quick-save directly to default OS directory (~/Pictures/Snappix/)
+ipcMain.handle('quick-save-photo', async (event, args = {}) => {
   try {
+    const { dataUrl, format = 'png', customName } = args;
     if (!dataUrl) return { success: false, error: 'No image data provided' };
+
     const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
     const ext = format.toLowerCase().replace('.', '');
-    const fileName = customName || `snappix-${Date.now()}.${ext}`;
+
+    // Formatted timestamp: Snappix_YYYY-MM-DD_HH-mm-ss
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-');
+    const fileName = customName || `Snappix_${dateStr}_${timeStr}.${ext}`;
     const filePath = path.join(getSnappixDir(), fileName);
 
     await fs.promises.writeFile(filePath, buffer);
-    return { success: true, filePath };
+    return { success: true, filePath, fileName };
   } catch (err) {
     console.error('Quick save error:', err);
     return { success: false, error: err.message };
   }
 });
+
 
 // Reveal file in OS file manager (macOS Finder / Windows File Explorer)
 ipcMain.handle('open-in-finder', async (event, filePath) => {

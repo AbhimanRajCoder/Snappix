@@ -6,8 +6,10 @@ import {
   playCountdownBeep,
   captureFrame,
   savePhotoFile,
+  quickSavePhotoFile,
   copyImageToClipboard
 } from './utils/captureUtils';
+
 import './App.css';
 
 function App() {
@@ -264,6 +266,25 @@ function App() {
       setFeedbackMsg(`Failed to save: ${result.error || 'Unknown error'}`);
     }
   };
+
+  // Quick Save directly to ~/Pictures/Snappix/ without dialog
+  const handleQuickSave = async (photo = activePreviewPhoto) => {
+    if (!photo) return;
+    const cleanFilterName = photo.filterName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const filename = `snappix-${cleanFilterName}-${Date.now()}.${exportFormat}`;
+
+    setFeedbackMsg('Saving to ~/Pictures/Snappix...');
+    const result = await quickSavePhotoFile(photo.dataUrl, exportFormat, filename);
+
+    if (result.success) {
+      setLastSavedPath(result.filePath || null);
+      setFeedbackMsg(`✓ Quick-saved to ~/Pictures/Snappix/!`);
+      setTimeout(() => setFeedbackMsg(null), 4000);
+    } else {
+      setFeedbackMsg(`Failed to save: ${result.error || 'Unknown error'}`);
+    }
+  };
+
 
   // Copy photo to clipboard
   const handleCopyToClipboard = async (photo = activePreviewPhoto) => {
@@ -887,10 +908,21 @@ function App() {
                 <button
                   type="button"
                   className="action-btn primary"
-                  onClick={() => handleSavePhoto(activePreviewPhoto)}
+                  onClick={() => handleQuickSave(activePreviewPhoto)}
+                  title="Instantly save to ~/Pictures/Snappix/"
                 >
-                  💾 SAVE PHOTO
+                  ⚡ QUICK SAVE
                 </button>
+
+                <button
+                  type="button"
+                  className="action-btn secondary"
+                  onClick={() => handleSavePhoto(activePreviewPhoto)}
+                  title="Choose custom folder and file name"
+                >
+                  💾 SAVE AS...
+                </button>
+
 
                 <button
                   type="button"
