@@ -1,0 +1,580 @@
+[
+  {
+    "id": "natural",
+    "name": "Natural",
+    "category": "Classic",
+    "defaultIntensity": 100,
+    "description": "Original true-to-life camera feed",
+    "settings": {
+      "contrast": 100,
+      "brightness": 100,
+      "saturate": 100,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "vintage-film",
+    "name": "Vintage Film",
+    "category": "Retro & Film",
+    "defaultIntensity": 85,
+    "description": "Nostalgic 35mm warmth with faded shadows",
+    "settings": {
+      "contrast": 115,
+      "brightness": 95,
+      "saturate": 85,
+      "sepia": 45,
+      "grayscale": 0,
+      "hueRotate": -5,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "retro-70s",
+    "name": "Retro 70s",
+    "category": "Retro & Film",
+    "defaultIntensity": 80,
+    "description": "Sun-drenched golden tones from the 1970s",
+    "settings": {
+      "contrast": 125,
+      "brightness": 105,
+      "saturate": 130,
+      "sepia": 35,
+      "grayscale": 0,
+      "hueRotate": 10,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "kodak-gold",
+    "name": "Kodak Gold",
+    "category": "Retro & Film",
+    "defaultIntensity": 90,
+    "description": "Rich golden highlights and punchy warmth",
+    "settings": {
+      "contrast": 120,
+      "brightness": 105,
+      "saturate": 135,
+      "sepia": 20,
+      "grayscale": 0,
+      "hueRotate": 15,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "fuji-velvia",
+    "name": "Fuji Velvia",
+    "category": "Retro & Film",
+    "defaultIntensity": 85,
+    "description": "Hyper-saturated vivid slide film colors",
+    "settings": {
+      "contrast": 135,
+      "brightness": 98,
+      "saturate": 160,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": -10,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "polaroid-600",
+    "name": "Polaroid 600",
+    "category": "Retro & Film",
+    "defaultIntensity": 80,
+    "description": "Soft faded blacks with creamy instant-print exposure",
+    "settings": {
+      "contrast": 90,
+      "brightness": 110,
+      "saturate": 90,
+      "sepia": 25,
+      "grayscale": 0,
+      "hueRotate": -8,
+      "blur": 0.4,
+      "invert": 0
+    }
+  },
+  {
+    "id": "super-8mm",
+    "name": "Super 8mm",
+    "category": "Retro & Film",
+    "defaultIntensity": 90,
+    "description": "Faded home-movie reel with warm tint",
+    "settings": {
+      "contrast": 130,
+      "brightness": 92,
+      "saturate": 75,
+      "sepia": 55,
+      "grayscale": 0,
+      "hueRotate": 8,
+      "blur": 0.6,
+      "invert": 0
+    }
+  },
+  {
+    "id": "bleach-bypass",
+    "name": "Bleach Bypass",
+    "category": "Retro & Film",
+    "defaultIntensity": 85,
+    "description": "High contrast, silver desaturated cinematic wash",
+    "settings": {
+      "contrast": 150,
+      "brightness": 90,
+      "saturate": 40,
+      "sepia": 15,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "bw-classic",
+    "name": "B&W Classic",
+    "category": "Monochrome",
+    "defaultIntensity": 100,
+    "description": "Balanced, timeless black and white",
+    "settings": {
+      "contrast": 110,
+      "brightness": 100,
+      "saturate": 0,
+      "sepia": 0,
+      "grayscale": 100,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "bw-noir",
+    "name": "Film Noir",
+    "category": "Monochrome",
+    "defaultIntensity": 95,
+    "description": "Stark theatrical contrast and deep shadowed blacks",
+    "settings": {
+      "contrast": 165,
+      "brightness": 88,
+      "saturate": 0,
+      "sepia": 0,
+      "grayscale": 100,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "bw-silver",
+    "name": "Silver Portrait",
+    "category": "Monochrome",
+    "defaultIntensity": 85,
+    "description": "Gentle, glowing highlights with delicate midtones",
+    "settings": {
+      "contrast": 95,
+      "brightness": 112,
+      "saturate": 0,
+      "sepia": 8,
+      "grayscale": 95,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "coffee-sepia",
+    "name": "Coffee Sepia",
+    "category": "Monochrome",
+    "defaultIntensity": 80,
+    "description": "Rich café latte monochrome warmth",
+    "settings": {
+      "contrast": 115,
+      "brightness": 95,
+      "saturate": 80,
+      "sepia": 90,
+      "grayscale": 20,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "warm-sunset",
+    "name": "Warm Sunset",
+    "category": "Mood & Glow",
+    "defaultIntensity": 85,
+    "description": "Radiant amber and crimson dusk tones",
+    "settings": {
+      "contrast": 110,
+      "brightness": 102,
+      "saturate": 140,
+      "sepia": 35,
+      "grayscale": 0,
+      "hueRotate": 20,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "golden-hour",
+    "name": "Golden Hour",
+    "category": "Mood & Glow",
+    "defaultIntensity": 90,
+    "description": "Soft, sunlit honey glow across your face",
+    "settings": {
+      "contrast": 105,
+      "brightness": 108,
+      "saturate": 125,
+      "sepia": 30,
+      "grayscale": 0,
+      "hueRotate": 12,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "cool-nordic",
+    "name": "Cool Nordic",
+    "category": "Mood & Glow",
+    "defaultIntensity": 85,
+    "description": "Crisp arctic air with soothing cool tones",
+    "settings": {
+      "contrast": 108,
+      "brightness": 102,
+      "saturate": 95,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 185,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "dream-glow",
+    "name": "Dream Glow",
+    "category": "Mood & Glow",
+    "defaultIntensity": 80,
+    "description": "Ethereal, blooming highlights with soft haze",
+    "settings": {
+      "contrast": 88,
+      "brightness": 120,
+      "saturate": 115,
+      "sepia": 15,
+      "grayscale": 0,
+      "hueRotate": 5,
+      "blur": 0.8,
+      "invert": 0
+    }
+  },
+  {
+    "id": "fade-pastel",
+    "name": "Fade Pastel",
+    "category": "Mood & Glow",
+    "defaultIntensity": 80,
+    "description": "Muted matte shadows and airy pastel light",
+    "settings": {
+      "contrast": 82,
+      "brightness": 115,
+      "saturate": 85,
+      "sepia": 10,
+      "grayscale": 0,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "cotton-candy",
+    "name": "Cotton Candy",
+    "category": "Mood & Glow",
+    "defaultIntensity": 75,
+    "description": "Playful bubblegum sweetness and soft magenta",
+    "settings": {
+      "contrast": 95,
+      "brightness": 110,
+      "saturate": 130,
+      "sepia": 10,
+      "grayscale": 0,
+      "hueRotate": 310,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "desert-dunes",
+    "name": "Desert Dunes",
+    "category": "Mood & Glow",
+    "defaultIntensity": 85,
+    "description": "Sun-baked terracotta earth tones",
+    "settings": {
+      "contrast": 125,
+      "brightness": 104,
+      "saturate": 115,
+      "sepia": 40,
+      "grayscale": 0,
+      "hueRotate": 25,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "cine-teal-orange",
+    "name": "Teal & Orange",
+    "category": "Cinematic",
+    "defaultIntensity": 90,
+    "description": "Blockbuster cinematic grade with teal shadows",
+    "settings": {
+      "contrast": 130,
+      "brightness": 98,
+      "saturate": 140,
+      "sepia": 20,
+      "grayscale": 0,
+      "hueRotate": 170,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "cine-800t",
+    "name": "Cine 800T",
+    "category": "Cinematic",
+    "defaultIntensity": 85,
+    "description": "Tungsten street lighting and cyan film aura",
+    "settings": {
+      "contrast": 118,
+      "brightness": 94,
+      "saturate": 120,
+      "sepia": 10,
+      "grayscale": 0,
+      "hueRotate": 195,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "tokyo-night",
+    "name": "Tokyo Night",
+    "category": "Cinematic",
+    "defaultIntensity": 85,
+    "description": "Moody neon-dappled midnight rain aesthetic",
+    "settings": {
+      "contrast": 135,
+      "brightness": 88,
+      "saturate": 135,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 220,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "moody-forest",
+    "name": "Moody Forest",
+    "category": "Cinematic",
+    "defaultIntensity": 80,
+    "description": "Deep pine greens and dampened overcast contrast",
+    "settings": {
+      "contrast": 120,
+      "brightness": 90,
+      "saturate": 90,
+      "sepia": 10,
+      "grayscale": 0,
+      "hueRotate": 80,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "cross-process",
+    "name": "Cross Process",
+    "category": "Cinematic",
+    "defaultIntensity": 80,
+    "description": "Experimental chemical darkroom color shifts",
+    "settings": {
+      "contrast": 145,
+      "brightness": 102,
+      "saturate": 140,
+      "sepia": 30,
+      "grayscale": 0,
+      "hueRotate": 50,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "cyber-neon",
+    "name": "Cyber Neon",
+    "category": "Creative & Pop",
+    "defaultIntensity": 90,
+    "description": "Electric violet cyberpunk brilliance",
+    "settings": {
+      "contrast": 145,
+      "brightness": 105,
+      "saturate": 200,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 275,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "synthwave-84",
+    "name": "Synthwave '84",
+    "category": "Creative & Pop",
+    "defaultIntensity": 85,
+    "description": "Neon magenta and cyan retro future arcade",
+    "settings": {
+      "contrast": 150,
+      "brightness": 98,
+      "saturate": 180,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 295,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "matrix-green",
+    "name": "Matrix Terminal",
+    "category": "Creative & Pop",
+    "defaultIntensity": 85,
+    "description": "Subversive phosphor green hacker phosphor",
+    "settings": {
+      "contrast": 140,
+      "brightness": 90,
+      "saturate": 150,
+      "sepia": 60,
+      "grayscale": 0,
+      "hueRotate": 95,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "emerald-forest",
+    "name": "Emerald Glow",
+    "category": "Creative & Pop",
+    "defaultIntensity": 80,
+    "description": "Lush vibrant emerald and jade saturation",
+    "settings": {
+      "contrast": 115,
+      "brightness": 100,
+      "saturate": 170,
+      "sepia": 20,
+      "grayscale": 0,
+      "hueRotate": 110,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "ruby-heat",
+    "name": "Ruby Heat",
+    "category": "Creative & Pop",
+    "defaultIntensity": 80,
+    "description": "Fiery crimson heatwave exposure",
+    "settings": {
+      "contrast": 130,
+      "brightness": 95,
+      "saturate": 165,
+      "sepia": 40,
+      "grayscale": 0,
+      "hueRotate": 345,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "midnight-violet",
+    "name": "Midnight Violet",
+    "category": "Creative & Pop",
+    "defaultIntensity": 85,
+    "description": "Deep twilight indigo and royal plum mood",
+    "settings": {
+      "contrast": 125,
+      "brightness": 92,
+      "saturate": 140,
+      "sepia": 10,
+      "grayscale": 0,
+      "hueRotate": 250,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "lomo-vivid",
+    "name": "Lomo Vivid",
+    "category": "Creative & Pop",
+    "defaultIntensity": 90,
+    "description": "Toy camera high-contrast saturated vignette vibe",
+    "settings": {
+      "contrast": 155,
+      "brightness": 102,
+      "saturate": 175,
+      "sepia": 15,
+      "grayscale": 0,
+      "hueRotate": 355,
+      "blur": 0,
+      "invert": 0
+    }
+  },
+  {
+    "id": "xray-negative",
+    "name": "X-Ray Negative",
+    "category": "Art & Experimental",
+    "defaultIntensity": 80,
+    "description": "Inverted monochromatic radiological film look",
+    "settings": {
+      "contrast": 140,
+      "brightness": 100,
+      "saturate": 0,
+      "sepia": 0,
+      "grayscale": 100,
+      "hueRotate": 0,
+      "blur": 0,
+      "invert": 90
+    }
+  },
+  {
+    "id": "infrared-ghost",
+    "name": "Infrared Surreal",
+    "category": "Art & Experimental",
+    "defaultIntensity": 80,
+    "description": "Surreal infrared spectrum color reversal",
+    "settings": {
+      "contrast": 135,
+      "brightness": 105,
+      "saturate": 150,
+      "sepia": 0,
+      "grayscale": 0,
+      "hueRotate": 180,
+      "blur": 0.3,
+      "invert": 50
+    }
+  },
+  {
+    "id": "glitch-pop",
+    "name": "Glitchpop",
+    "category": "Art & Experimental",
+    "defaultIntensity": 75,
+    "description": "Wild high-voltage pop-art inverted tones",
+    "settings": {
+      "contrast": 170,
+      "brightness": 110,
+      "saturate": 210,
+      "sepia": 20,
+      "grayscale": 0,
+      "hueRotate": 140,
+      "blur": 0,
+      "invert": 40
+    }
+  }
+]
