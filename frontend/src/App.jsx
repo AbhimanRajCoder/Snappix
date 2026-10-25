@@ -366,33 +366,106 @@ function App() {
     setTimeout(() => setFeedbackMsg(null), 3500);
   };
 
-  // Keyboard shortcuts (Space = snap, Esc = close preview / cancel countdown, Arrows = carousel)
+  // Filter switching via keyboard (Left / Right arrows)
+  const handleNextFilter = useCallback(() => {
+    if (!filteredList || filteredList.length === 0) return;
+    const currentIndex = filteredList.findIndex((f) => f.id === selectedFilter.id);
+    const nextIndex = currentIndex < filteredList.length - 1 ? currentIndex + 1 : 0;
+    handleSelectFilter(filteredList[nextIndex]);
+  }, [filteredList, selectedFilter]);
+
+  const handlePrevFilter = useCallback(() => {
+    if (!filteredList || filteredList.length === 0) return;
+    const currentIndex = filteredList.findIndex((f) => f.id === selectedFilter.id);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : filteredList.length - 1;
+    handleSelectFilter(filteredList[prevIndex]);
+  }, [filteredList, selectedFilter]);
+
+  // Smooth scroll selected filter into view
+  useEffect(() => {
+    const el = document.querySelector(`.filter-card-item[data-filter-id="${selectedFilter.id}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }, [selectedFilter.id]);
+
+  // Keyboard shortcuts:
+  // - Space / Enter: Snap photo
+  // - Cmd/Ctrl + S: Save photo
+  // - ArrowLeft / ArrowRight: Switch filters (in camera) or carousel (in modal)
+  // - Escape: Close preview modal / cancel countdown
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
 
-      if (e.code === 'Space') {
+      // Cmd/Ctrl + S to Save
+      if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) {
         e.preventDefault();
-        if (!activePreviewPhoto && isStreaming) {
-          handleTriggerShutter();
+        if (activePreviewPhoto) {
+          handleSavePhoto(activePreviewPhoto);
+        } else if (capturedPhotos.length > 0) {
+          handleSavePhoto(capturedPhotos[0]);
         }
-      } else if (e.key === 'Escape') {
+        return;
+      }
+
+      // Spacebar or Enter to Snap Photo
+      if (e.code === 'Space' || e.key === 'Enter') {
+        if (!activePreviewPhoto) {
+          e.preventDefault();
+          if (isStreaming) {
+            handleTriggerShutter();
+          }
+        }
+        return;
+      }
+
+      // Escape to dismiss modal or countdown
+      if (e.key === 'Escape') {
         if (activePreviewPhoto) {
           setActivePreviewPhoto(null);
         }
         if (countdownRemaining !== null) {
           cancelCountdown();
         }
-      } else if (e.key === 'ArrowLeft' && activePreviewPhoto) {
-        handlePrevPhoto();
-      } else if (e.key === 'ArrowRight' && activePreviewPhoto) {
-        handleNextPhoto();
+        return;
+      }
+
+      // Left / Right arrow keys
+      if (e.key === 'ArrowLeft') {
+        if (activePreviewPhoto) {
+          handlePrevPhoto();
+        } else if (isStreaming && activeNav !== 'GALLERY') {
+          e.preventDefault();
+          handlePrevFilter();
+        }
+      } else if (e.key === 'ArrowRight') {
+        if (activePreviewPhoto) {
+          handleNextPhoto();
+        } else if (isStreaming && activeNav !== 'GALLERY') {
+          e.preventDefault();
+          handleNextFilter();
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activePreviewPhoto, isStreaming, countdownRemaining, handleTriggerShutter, cancelCountdown, handlePrevPhoto, handleNextPhoto]);
+  }, [
+    activePreviewPhoto,
+    isStreaming,
+    activeNav,
+    countdownRemaining,
+    capturedPhotos,
+    handleTriggerShutter,
+    cancelCountdown,
+    handleSavePhoto,
+    handlePrevPhoto,
+    handleNextPhoto,
+    handlePrevFilter,
+    handleNextFilter
+  ]);
+
 
 
   // Initialize camera on mount
@@ -680,7 +753,7 @@ function App() {
                 type="button"
                 className={`shutter-trigger-btn ${countdownRemaining !== null ? 'counting' : ''}`}
                 onClick={handleTriggerShutter}
-                title="Capture Photo (Spacebar)"
+                title="Capture Photo (Spacebar or Enter)"
               >
                 <div className="shutter-inner-ring">
                   <span className="shutter-camera-icon">📸</span>
@@ -691,8 +764,15 @@ function App() {
                   </span>
                 </div>
               </button>
-              <div className="shutter-hint-key">PRESS <strong>SPACEBAR</strong> TO SNAP</div>
+
+              {/* Keyboard shortcuts legend */}
+              <div className="shortcuts-legend">
+                <span className="shortcut-tag"><kbd>SPACE</kbd> / <kbd>ENTER</kbd> Snap</span>
+                <span className="shortcut-tag"><kbd>◀</kbd> <kbd>▶</kbd> Switch Filter</span>
+                <span className="shortcut-tag"><kbd>⌘/Ctrl</kbd>+<kbd>S</kbd> Save</span>
+              </div>
             </div>
+
 
             {/* Current Active Filter Badge & Intensity Control */}
             <div className="filter-status-card">
@@ -768,9 +848,11 @@ function App() {
                   return (
                     <button
                       key={filter.id}
+                      data-filter-id={filter.id}
                       type="button"
                       className={`filter-card-item ${isSelected ? 'selected' : ''}`}
                       onClick={() => handleSelectFilter(filter)}
+
                     >
                       <div className="filter-preview-circle">
                         <div

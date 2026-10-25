@@ -705,6 +705,38 @@
   line-height: 1;
 }
 
+.shortcuts-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.shortcut-tag {
+  font-family: var(--font-arial);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-charcoal-ink);
+  background-color: var(--color-cloud-white);
+  border: 2px solid var(--color-charcoal-ink);
+  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shortcut-tag kbd {
+  font-family: var(--font-arial);
+  font-size: 10px;
+  font-weight: 800;
+  background-color: var(--color-charcoal-ink);
+  color: var(--color-cloud-white);
+  padding: 1px 4px;
+  line-height: 1.2;
+}
+
 .shutter-hint-key {
   font-family: var(--font-arial);
   font-size: 11px;
@@ -712,6 +744,7 @@
   color: var(--color-charcoal-ink);
   opacity: 0.75;
 }
+
 
 /* Recent Snaps Tray */
 .recent-snaps-tray {
